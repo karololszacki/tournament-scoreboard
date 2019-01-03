@@ -11,13 +11,18 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Controller;
 
-/**
- * @group legacy
- */
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\File\File;
+
 class ControllerTest extends ControllerTraitTest
 {
     protected function createController()
     {
         return new TestController();
     }
+}
+
+class TestController extends Controller
+{
+    use TestControllerTrait;
 }

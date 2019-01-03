@@ -12,8 +12,8 @@
 namespace Symfony\Bundle\FrameworkBundle\Controller;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\HttpKernel\Controller\ContainerControllerResolver;
 
 /**
@@ -37,13 +37,16 @@ class ControllerResolver extends ContainerControllerResolver
     {
         if (false === strpos($controller, '::') && 2 === substr_count($controller, ':')) {
             // controller in the a:b:c notation then
-            $deprecatedNotation = $controller;
-            $controller = $this->parser->parse($deprecatedNotation, false);
-
-            @trigger_error(sprintf('Referencing controllers with %s is deprecated since Symfony 4.1. Use %s instead.', $deprecatedNotation, $controller), E_USER_DEPRECATED);
+            $controller = $this->parser->parse($controller);
         }
 
-        return parent::createController($controller);
+        $resolvedController = parent::createController($controller);
+
+        if (1 === substr_count($controller, ':') && is_array($resolvedController)) {
+            $resolvedController[0] = $this->configureController($resolvedController[0]);
+        }
+
+        return $resolvedController;
     }
 
     /**
@@ -51,22 +54,16 @@ class ControllerResolver extends ContainerControllerResolver
      */
     protected function instantiateController($class)
     {
-        return $this->configureController(parent::instantiateController($class), $class);
+        return $this->configureController(parent::instantiateController($class));
     }
 
-    private function configureController($controller, string $class)
+    private function configureController($controller)
     {
         if ($controller instanceof ContainerAwareInterface) {
             $controller->setContainer($this->container);
         }
-        if ($controller instanceof AbstractController) {
-            if (null === $previousContainer = $controller->setContainer($this->container)) {
-                @trigger_error(sprintf('Auto-injection of the container for "%s" is deprecated since Symfony 4.2. Configure it as a service instead.', $class), E_USER_DEPRECATED);
-            // To be uncommented on Symfony 5:
-                //throw new \LogicException(sprintf('"%s" has no container set, did you forget to define it as a service subscriber?', $class));
-            } else {
-                $controller->setContainer($previousContainer);
-            }
+        if ($controller instanceof AbstractController && null !== $previousContainer = $controller->setContainer($this->container)) {
+            $controller->setContainer($previousContainer);
         }
 
         return $controller;

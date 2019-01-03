@@ -6,11 +6,11 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "overblog/graphql-bundle": "^0.11.10",
-        "symfony/console": "4.2.*",
+        "symfony/console": "4.0",
         "symfony/flex": "^1.1",
-        "symfony/framework-bundle": "4.2.*",
+        "symfony/framework-bundle": "4.0",
         "symfony/orm-pack": "^1.0",
-        "symfony/yaml": "4.2.*"
+        "symfony/yaml": "4.0"
     },
     "config": {
         "preferred-install": {
@@ -54,11 +54,13 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "4.2.*"
+            "require": "4.0"
         }
     },
     "require-dev": {
         "overblog/graphiql-bundle": "^0.1.2",
-        "symfony/dotenv": "4.2.*"
+        "symfony/dotenv": "4.0",
+        "symfony/maker-bundle": "^1.11",
+        "symfony/web-server-bundle": "4.0"
     }
 }

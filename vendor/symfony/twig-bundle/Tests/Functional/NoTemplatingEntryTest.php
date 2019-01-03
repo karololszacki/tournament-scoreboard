@@ -9,14 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\TwigBundle\Tests\Functional;
+namespace Symfony\Bundle\TwigBundle\Tests;
 
-use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
-use Symfony\Bundle\TwigBundle\Tests\TestCase;
-use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 
 class NoTemplatingEntryTest extends TestCase
 {
@@ -61,16 +60,10 @@ class NoTemplatingEntryKernel extends Kernel
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
         $loader->load(function ($container) {
-            $container
-                ->loadFromExtension('framework', array(
-                    'secret' => '$ecret',
-                    'form' => array('enabled' => false),
-                ))
-                ->loadFromExtension('twig', array(
-                    'strict_variables' => false, // to be removed in 5.0 relying on default
-                    'default_path' => __DIR__.'/templates',
-                ))
-            ;
+            $container->loadFromExtension('framework', array(
+                'secret' => '$ecret',
+                'form' => array('enabled' => false),
+            ));
         });
     }
 

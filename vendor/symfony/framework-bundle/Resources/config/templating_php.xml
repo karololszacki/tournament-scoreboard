@@ -58,7 +58,7 @@
 
         <service id="templating.helper.translator" class="Symfony\Bundle\FrameworkBundle\Templating\Helper\TranslatorHelper">
             <tag name="templating.helper" alias="translator" />
-            <argument type="service" id="translator" on-invalid="null" />
+            <argument type="service" id="translator" />
         </service>
 
         <service id="templating.helper.form" class="Symfony\Bundle\FrameworkBundle\Templating\Helper\FormHelper">

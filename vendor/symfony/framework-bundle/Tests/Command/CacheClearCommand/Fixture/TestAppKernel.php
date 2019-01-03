@@ -26,14 +26,14 @@ class TestAppKernel extends Kernel
         );
     }
 
-    public function getProjectDir()
+    public function setRootDir($rootDir)
     {
-        return __DIR__.'/test';
+        $this->rootDir = $rootDir;
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $loader->load(__DIR__.\DIRECTORY_SEPARATOR.'config.yml');
+        $loader->load(__DIR__.DIRECTORY_SEPARATOR.'config.yml');
     }
 
     protected function build(ContainerBuilder $container)

@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\TwigBundle\DependencyInjection\Configurator;
 
-use Symfony\Bridge\Twig\UndefinedCallableHandler;
 use Twig\Environment;
 
 // BC/FC with namespaced Twig
@@ -50,9 +49,5 @@ class EnvironmentConfigurator
         }
 
         $environment->getExtension('Twig\Extension\CoreExtension')->setNumberFormat($this->decimals, $this->decimalPoint, $this->thousandsSeparator);
-
-        // wrap UndefinedCallableHandler in closures for lazy-autoloading
-        $environment->registerUndefinedFilterCallback(function ($name) { return UndefinedCallableHandler::onUndefinedFilter($name); });
-        $environment->registerUndefinedFunctionCallback(function ($name) { return UndefinedCallableHandler::onUndefinedFunction($name); });
     }
 }

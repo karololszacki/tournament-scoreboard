@@ -28,24 +28,17 @@ class AnnotationsCacheWarmer extends AbstractPhpFileCacheWarmer
 {
     private $annotationReader;
     private $excludeRegexp;
-    private $debug;
 
     /**
-     * @param string $phpArrayFile  The PHP file where annotations are cached
-     * @param string $excludeRegexp
-     * @param bool   $debug
+     * @param Reader                 $annotationReader
+     * @param string                 $phpArrayFile     The PHP file where annotations are cached
+     * @param CacheItemPoolInterface $fallbackPool     The pool where runtime-discovered annotations are cached
      */
-    public function __construct(Reader $annotationReader, string $phpArrayFile, $excludeRegexp = null, $debug = false)
+    public function __construct(Reader $annotationReader, string $phpArrayFile, CacheItemPoolInterface $fallbackPool, string $excludeRegexp = null)
     {
-        if ($excludeRegexp instanceof CacheItemPoolInterface) {
-            @trigger_error(sprintf('The CacheItemPoolInterface $fallbackPool argument of "%s()" is deprecated since Symfony 4.2, you should not pass it anymore.', __METHOD__), E_USER_DEPRECATED);
-            $excludeRegexp = $debug;
-            $debug = 4 < \func_num_args() && \func_get_arg(4);
-        }
-        parent::__construct($phpArrayFile);
+        parent::__construct($phpArrayFile, $fallbackPool);
         $this->annotationReader = $annotationReader;
         $this->excludeRegexp = $excludeRegexp;
-        $this->debug = $debug;
     }
 
     /**
@@ -60,7 +53,7 @@ class AnnotationsCacheWarmer extends AbstractPhpFileCacheWarmer
         }
 
         $annotatedClasses = include $annotatedClassPatterns;
-        $reader = new CachedReader($this->annotationReader, new DoctrineProvider($arrayAdapter), $this->debug);
+        $reader = new CachedReader($this->annotationReader, new DoctrineProvider($arrayAdapter));
 
         foreach ($annotatedClasses as $class) {
             if (null !== $this->excludeRegexp && preg_match($this->excludeRegexp, $class)) {

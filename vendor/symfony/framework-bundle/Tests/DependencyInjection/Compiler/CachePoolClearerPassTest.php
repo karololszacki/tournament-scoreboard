@@ -21,16 +21,15 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\CacheClearer\Psr6CacheClearer;
 
-/**
- * @group legacy
- */
 class CachePoolClearerPassTest extends TestCase
 {
     public function testPoolRefsAreWeak()
     {
         $container = new ContainerBuilder();
-        $container->setParameter('kernel.container_class', 'app');
-        $container->setParameter('kernel.project_dir', 'foo');
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.name', 'app');
+        $container->setParameter('kernel.environment', 'prod');
+        $container->setParameter('kernel.root_dir', 'foo');
 
         $globalClearer = new Definition(Psr6CacheClearer::class);
         $container->setDefinition('cache.global_clearer', $globalClearer);
@@ -39,11 +38,6 @@ class CachePoolClearerPassTest extends TestCase
         $publicPool->addArgument('namespace');
         $publicPool->addTag('cache.pool', array('clearer' => 'clearer_alias'));
         $container->setDefinition('public.pool', $publicPool);
-
-        $publicPool = new Definition();
-        $publicPool->addArgument('namespace');
-        $publicPool->addTag('cache.pool', array('clearer' => 'clearer_alias', 'name' => 'pool2'));
-        $container->setDefinition('public.pool2', $publicPool);
 
         $privatePool = new Definition();
         $privatePool->setPublic(false);
@@ -56,21 +50,12 @@ class CachePoolClearerPassTest extends TestCase
         $container->setAlias('clearer_alias', 'clearer');
 
         $pass = new RemoveUnusedDefinitionsPass();
-        foreach ($container->getCompiler()->getPassConfig()->getRemovingPasses() as $removingPass) {
-            if ($removingPass instanceof RepeatedPass) {
-                $pass->setRepeatedPass(new RepeatedPass(array($pass)));
-                break;
-            }
-        }
+        $pass->setRepeatedPass(new RepeatedPass(array($pass)));
         foreach (array(new CachePoolPass(), $pass, new CachePoolClearerPass()) as $pass) {
             $pass->process($container);
         }
 
-        $expected = array(array(
-            'public.pool' => new Reference('public.pool'),
-            'pool2' => new Reference('public.pool2'),
-        ));
-        $this->assertEquals($expected, $clearer->getArguments());
-        $this->assertEquals($expected, $globalClearer->getArguments());
+        $this->assertEquals(array(array('public.pool' => new Reference('public.pool'))), $clearer->getArguments());
+        $this->assertEquals(array(array('public.pool' => new Reference('public.pool'))), $globalClearer->getArguments());
     }
 }

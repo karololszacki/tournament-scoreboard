@@ -11,19 +11,18 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Console;
 
-use Symfony\Component\Console\Application as BaseApplication;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Command\ListCommand;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Console\Application as BaseApplication;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
@@ -40,9 +39,8 @@ class Application extends BaseApplication
 
         parent::__construct('Symfony', Kernel::VERSION);
 
-        $inputDefinition = $this->getDefinition();
-        $inputDefinition->addOption(new InputOption('--env', '-e', InputOption::VALUE_REQUIRED, 'The Environment name.', $kernel->getEnvironment()));
-        $inputDefinition->addOption(new InputOption('--no-debug', null, InputOption::VALUE_NONE, 'Switches off debug mode.'));
+        $this->getDefinition()->addOption(new InputOption('--env', '-e', InputOption::VALUE_REQUIRED, 'The environment name', $kernel->getEnvironment()));
+        $this->getDefinition()->addOption(new InputOption('--no-debug', null, InputOption::VALUE_NONE, 'Switches off debug mode'));
     }
 
     /**
@@ -66,8 +64,6 @@ class Application extends BaseApplication
 
         $this->setDispatcher($this->kernel->getContainer()->get('event_dispatcher'));
 
-        $this->registerCommands();
-
         if ($this->registrationErrors) {
             $this->renderRegistrationErrors($input, $output);
         }
@@ -80,23 +76,11 @@ class Application extends BaseApplication
      */
     protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
     {
-        if (!$command instanceof ListCommand) {
-            if ($this->registrationErrors) {
-                $this->renderRegistrationErrors($input, $output);
-                $this->registrationErrors = array();
-            }
-
-            return parent::doRunCommand($command, $input, $output);
-        }
-
-        $returnCode = parent::doRunCommand($command, $input, $output);
-
         if ($this->registrationErrors) {
             $this->renderRegistrationErrors($input, $output);
-            $this->registrationErrors = array();
         }
 
-        return $returnCode;
+        return parent::doRunCommand($command, $input, $output);
     }
 
     /**
@@ -140,7 +124,7 @@ class Application extends BaseApplication
      */
     public function getLongVersion()
     {
-        return parent::getLongVersion().sprintf(' (env: <comment>%s</>, debug: <comment>%s</>)', $this->kernel->getEnvironment(), $this->kernel->isDebug() ? 'true' : 'false');
+        return parent::getLongVersion().sprintf(' (kernel: <comment>%s</>, env: <comment>%s</>, debug: <comment>%s</>)', $this->kernel->getName(), $this->kernel->getEnvironment(), $this->kernel->isDebug() ? 'true' : 'false');
     }
 
     public function add(Command $command)
@@ -205,5 +189,7 @@ class Application extends BaseApplication
         foreach ($this->registrationErrors as $error) {
             $this->doRenderException($error, $output);
         }
+
+        $this->registrationErrors = array();
     }
 }

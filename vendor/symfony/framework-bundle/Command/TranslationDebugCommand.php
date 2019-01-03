@@ -12,22 +12,20 @@
 namespace Symfony\Bundle\FrameworkBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
-use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Translation\Catalogue\MergeOperation;
-use Symfony\Component\Translation\DataCollectorTranslator;
 use Symfony\Component\Translation\Extractor\ExtractorInterface;
-use Symfony\Component\Translation\LoggingTranslator;
 use Symfony\Component\Translation\MessageCatalogue;
 use Symfony\Component\Translation\Reader\TranslationReaderInterface;
 use Symfony\Component\Translation\Translator;
-use Symfony\Component\Translation\TranslatorInterface as LegacyTranslatorInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Translation\DataCollectorTranslator;
+use Symfony\Component\Translation\LoggingTranslator;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Helps finding unused or missing translation messages in a given locale
@@ -35,7 +33,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * @author Florian Voutzinos <florian@voutzinos.com>
  *
- * @final
+ * @final since version 3.4
  */
 class TranslationDebugCommand extends Command
 {
@@ -51,14 +49,8 @@ class TranslationDebugCommand extends Command
     private $defaultTransPath;
     private $defaultViewsPath;
 
-    /**
-     * @param TranslatorInterface $translator
-     */
-    public function __construct($translator, TranslationReaderInterface $reader, ExtractorInterface $extractor, string $defaultTransPath = null, string $defaultViewsPath = null)
+    public function __construct(TranslatorInterface $translator, TranslationReaderInterface $reader, ExtractorInterface $extractor, string $defaultTransPath = null, string $defaultViewsPath = null)
     {
-        if (!$translator instanceof LegacyTranslatorInterface && !$translator instanceof TranslatorInterface) {
-            throw new \TypeError(sprintf('Argument 1 passed to %s() must be an instance of %s, %s given.', __METHOD__, TranslatorInterface::class, \is_object($translator) ? \get_class($translator) : \gettype($translator)));
-        }
         parent::__construct();
 
         $this->translator = $translator;
@@ -76,7 +68,7 @@ class TranslationDebugCommand extends Command
         $this
             ->setDefinition(array(
                 new InputArgument('locale', InputArgument::REQUIRED, 'The locale'),
-                new InputArgument('bundle', InputArgument::OPTIONAL, 'The bundle name or directory where to load the messages'),
+                new InputArgument('bundle', InputArgument::OPTIONAL, 'The bundle name or directory where to load the messages, defaults to app/Resources folder'),
                 new InputOption('domain', null, InputOption::VALUE_OPTIONAL, 'The messages domain'),
                 new InputOption('only-missing', null, InputOption::VALUE_NONE, 'Displays only missing messages'),
                 new InputOption('only-unused', null, InputOption::VALUE_NONE, 'Displays only unused messages'),
@@ -86,7 +78,7 @@ class TranslationDebugCommand extends Command
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command helps finding unused or missing translation
 messages and comparing them with the fallback ones by inspecting the
-templates and translation files of a given bundle or the default translations directory.
+templates and translation files of a given bundle or the app folder.
 
 You can display information about bundle translations in a specific locale:
 
@@ -104,7 +96,7 @@ You can only display unused messages:
 
   <info>php %command.full_name% --only-unused en AcmeDemoBundle</info>
 
-You can display information about application translations in a specific locale:
+You can display information about app translations in a specific locale:
 
   <info>php %command.full_name% en</info>
 
@@ -128,28 +120,13 @@ EOF
         $domain = $input->getOption('domain');
         /** @var KernelInterface $kernel */
         $kernel = $this->getApplication()->getKernel();
-        $rootDir = $kernel->getContainer()->getParameter('kernel.root_dir');
 
         // Define Root Paths
-        $transPaths = array();
-        if (is_dir($dir = $rootDir.'/Resources/translations')) {
-            if ($dir !== $this->defaultTransPath) {
-                $notice = sprintf('Storing translations in the "%s" directory is deprecated since Symfony 4.2, ', $dir);
-                @trigger_error($notice.($this->defaultTransPath ? sprintf('use the "%s" directory instead.', $this->defaultTransPath) : 'configure and use "framework.translator.default_path" instead.'), E_USER_DEPRECATED);
-            }
-            $transPaths[] = $dir;
-        }
+        $transPaths = array($kernel->getRootDir().'/Resources/translations');
         if ($this->defaultTransPath) {
             $transPaths[] = $this->defaultTransPath;
         }
-        $viewsPaths = array();
-        if (is_dir($dir = $rootDir.'/Resources/views')) {
-            if ($dir !== $this->defaultViewsPath) {
-                $notice = sprintf('Storing templates in the "%s" directory is deprecated since Symfony 4.2, ', $dir);
-                @trigger_error($notice.($this->defaultViewsPath ? sprintf('use the "%s" directory instead.', $this->defaultViewsPath) : 'configure and use "twig.default_path" instead.'), E_USER_DEPRECATED);
-            }
-            $viewsPaths[] = $dir;
-        }
+        $viewsPaths = array($kernel->getRootDir().'/Resources/views');
         if ($this->defaultViewsPath) {
             $viewsPaths[] = $this->defaultViewsPath;
         }
@@ -160,60 +137,35 @@ EOF
                 $bundle = $kernel->getBundle($input->getArgument('bundle'));
                 $transPaths = array($bundle->getPath().'/Resources/translations');
                 if ($this->defaultTransPath) {
-                    $transPaths[] = $this->defaultTransPath;
+                    $transPaths[] = $this->defaultTransPath.'/'.$bundle->getName();
                 }
-                if (is_dir($dir = sprintf('%s/Resources/%s/translations', $rootDir, $bundle->getName()))) {
-                    $transPaths[] = $dir;
-                    $notice = sprintf('Storing translations files for "%s" in the "%s" directory is deprecated since Symfony 4.2, ', $dir, $bundle->getName());
-                    @trigger_error($notice.($this->defaultTransPath ? sprintf('use the "%s" directory instead.', $this->defaultTransPath) : 'configure and use "framework.translator.default_path" instead.'), E_USER_DEPRECATED);
-                }
+                $transPaths[] = sprintf('%s/Resources/%s/translations', $kernel->getRootDir(), $bundle->getName());
                 $viewsPaths = array($bundle->getPath().'/Resources/views');
                 if ($this->defaultViewsPath) {
-                    $viewsPaths[] = $this->defaultViewsPath;
+                    $viewsPaths[] = $this->defaultViewsPath.'/bundles/'.$bundle->getName();
                 }
-                if (is_dir($dir = sprintf('%s/Resources/%s/views', $rootDir, $bundle->getName()))) {
-                    $viewsPaths[] = $dir;
-                    $notice = sprintf('Storing templates for "%s" in the "%s" directory is deprecated since Symfony 4.2, ', $bundle->getName(), $dir);
-                    @trigger_error($notice.($this->defaultViewsPath ? sprintf('use the "%s" directory instead.', $this->defaultViewsPath) : 'configure and use "twig.default_path" instead.'), E_USER_DEPRECATED);
-                }
+                $viewsPaths[] = sprintf('%s/Resources/%s/views', $kernel->getRootDir(), $bundle->getName());
             } catch (\InvalidArgumentException $e) {
                 // such a bundle does not exist, so treat the argument as path
-                $path = $input->getArgument('bundle');
+                $transPaths = array($input->getArgument('bundle').'/Resources/translations');
+                $viewsPaths = array($input->getArgument('bundle').'/Resources/views');
 
-                $transPaths = array($path.'/translations');
-                if (is_dir($dir = $path.'/Resources/translations')) {
-                    if ($dir !== $this->defaultTransPath) {
-                        @trigger_error(sprintf('Storing translations in the "%s" directory is deprecated since Symfony 4.2, use the "%s" directory instead.', $dir, $path.'/translations'), E_USER_DEPRECATED);
-                    }
-                    $transPaths[] = $dir;
-                }
-
-                $viewsPaths = array($path.'/templates');
-                if (is_dir($dir = $path.'/Resources/views')) {
-                    if ($dir !== $this->defaultViewsPath) {
-                        @trigger_error(sprintf('Storing templates in the "%s" directory is deprecated since Symfony 4.2, use the "%s" directory instead.', $dir, $path.'/templates'), E_USER_DEPRECATED);
-                    }
-                    $viewsPaths[] = $dir;
-                }
-
-                if (!is_dir($transPaths[0]) && !isset($transPaths[1])) {
-                    throw new InvalidArgumentException(sprintf('"%s" is neither an enabled bundle nor a directory.', $transPaths[0]));
+                if (!is_dir($transPaths[0])) {
+                    throw new \InvalidArgumentException(sprintf('"%s" is neither an enabled bundle nor a directory.', $transPaths[0]));
                 }
             }
         } elseif ($input->getOption('all')) {
             foreach ($kernel->getBundles() as $bundle) {
                 $transPaths[] = $bundle->getPath().'/Resources/translations';
-                if (is_dir($deprecatedPath = sprintf('%s/Resources/%s/translations', $rootDir, $bundle->getName()))) {
-                    $transPaths[] = $deprecatedPath;
-                    $notice = sprintf('Storing translations files for "%s" in the "%s" directory is deprecated since Symfony 4.2, ', $bundle->getName(), $deprecatedPath);
-                    @trigger_error($notice.($this->defaultTransPath ? sprintf('use the "%s" directory instead.', $this->defaultTransPath) : 'configure and use "framework.translator.default_path" instead.'), E_USER_DEPRECATED);
+                if ($this->defaultTransPath) {
+                    $transPaths[] = $this->defaultTransPath.'/'.$bundle->getName();
                 }
+                $transPaths[] = sprintf('%s/Resources/%s/translations', $kernel->getRootDir(), $bundle->getName());
                 $viewsPaths[] = $bundle->getPath().'/Resources/views';
-                if (is_dir($deprecatedPath = sprintf('%s/Resources/%s/views', $rootDir, $bundle->getName()))) {
-                    $viewsPaths[] = $deprecatedPath;
-                    $notice = sprintf('Storing templates for "%s" in the "%s" directory is deprecated since Symfony 4.2, ', $bundle->getName(), $deprecatedPath);
-                    @trigger_error($notice.($this->defaultViewsPath ? sprintf('use the "%s" directory instead.', $this->defaultViewsPath) : 'configure and use "twig.default_path" instead.'), E_USER_DEPRECATED);
+                if ($this->defaultViewsPath) {
+                    $viewsPaths[] = $this->defaultViewsPath.'/bundles/'.$bundle->getName();
                 }
+                $viewsPaths[] = sprintf('%s/Resources/%s/views', $kernel->getRootDir(), $bundle->getName());
             }
         }
 
@@ -266,8 +218,8 @@ EOF
                     $states[] = self::MESSAGE_UNUSED;
                 }
 
-                if (!\in_array(self::MESSAGE_UNUSED, $states) && true === $input->getOption('only-unused')
-                    || !\in_array(self::MESSAGE_MISSING, $states) && true === $input->getOption('only-missing')) {
+                if (!in_array(self::MESSAGE_UNUSED, $states) && true === $input->getOption('only-unused')
+                    || !in_array(self::MESSAGE_MISSING, $states) && true === $input->getOption('only-missing')) {
                     continue;
                 }
 
@@ -331,7 +283,7 @@ EOF
             if (mb_strlen($string, $encoding) > $length) {
                 return mb_substr($string, 0, $length - 3, $encoding).'...';
             }
-        } elseif (\strlen($string) > $length) {
+        } elseif (strlen($string) > $length) {
             return substr($string, 0, $length - 3).'...';
         }
 

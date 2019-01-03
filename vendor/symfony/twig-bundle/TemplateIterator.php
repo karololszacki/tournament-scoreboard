@@ -11,8 +11,8 @@
 
 namespace Symfony\Bundle\TwigBundle;
 
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Iterator for all templates in bundles and in the application Resources directory.
@@ -25,20 +25,17 @@ class TemplateIterator implements \IteratorAggregate
     private $rootDir;
     private $templates;
     private $paths;
-    private $defaultPath;
 
     /**
-     * @param KernelInterface $kernel      A KernelInterface instance
-     * @param string          $rootDir     The directory where global templates can be stored
-     * @param array           $paths       Additional Twig paths to warm
-     * @param string          $defaultPath The directory where global templates can be stored
+     * @param KernelInterface $kernel  A KernelInterface instance
+     * @param string          $rootDir The directory where global templates can be stored
+     * @param array           $paths   Additional Twig paths to warm
      */
-    public function __construct(KernelInterface $kernel, string $rootDir, array $paths = array(), string $defaultPath = null)
+    public function __construct(KernelInterface $kernel, string $rootDir, array $paths = array())
     {
         $this->kernel = $kernel;
         $this->rootDir = $rootDir;
         $this->paths = $paths;
-        $this->defaultPath = $defaultPath;
     }
 
     /**
@@ -50,10 +47,7 @@ class TemplateIterator implements \IteratorAggregate
             return $this->templates;
         }
 
-        $this->templates = array_merge(
-            $this->findTemplatesInDirectory($this->rootDir.'/Resources/views'),
-            $this->findTemplatesInDirectory($this->defaultPath, null, array('bundles'))
-        );
+        $this->templates = $this->findTemplatesInDirectory($this->rootDir.'/Resources/views');
         foreach ($this->kernel->getBundles() as $bundle) {
             $name = $bundle->getName();
             if ('Bundle' === substr($name, -6)) {
@@ -63,8 +57,7 @@ class TemplateIterator implements \IteratorAggregate
             $this->templates = array_merge(
                 $this->templates,
                 $this->findTemplatesInDirectory($bundle->getPath().'/Resources/views', $name),
-                $this->findTemplatesInDirectory($this->rootDir.'/Resources/'.$bundle->getName().'/views', $name),
-                $this->findTemplatesInDirectory($this->defaultPath.'/bundles/'.$bundle->getName(), $name)
+                $this->findTemplatesInDirectory($this->rootDir.'/'.$bundle->getName().'/views', $name)
             );
         }
 
@@ -83,14 +76,14 @@ class TemplateIterator implements \IteratorAggregate
      *
      * @return array
      */
-    private function findTemplatesInDirectory($dir, $namespace = null, array $excludeDirs = array())
+    private function findTemplatesInDirectory($dir, $namespace = null)
     {
         if (!is_dir($dir)) {
             return array();
         }
 
         $templates = array();
-        foreach (Finder::create()->files()->followLinks()->in($dir)->exclude($excludeDirs) as $file) {
+        foreach (Finder::create()->files()->followLinks()->in($dir) as $file) {
             $templates[] = (null !== $namespace ? '@'.$namespace.'/' : '').str_replace('\\', '/', $file->getRelativePathname());
         }
 

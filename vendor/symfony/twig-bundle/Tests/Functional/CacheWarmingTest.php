@@ -9,14 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\TwigBundle\Tests\Functional;
+namespace Symfony\Bundle\TwigBundle\Tests;
 
-use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
-use Symfony\Bundle\TwigBundle\Tests\TestCase;
-use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 
 class CacheWarmingTest extends TestCase
 {
@@ -89,15 +88,10 @@ class CacheWarmingKernel extends Kernel
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
         $loader->load(function ($container) {
-            $container
-                ->loadFromExtension('framework', array(
-                    'secret' => '$ecret',
-                    'form' => array('enabled' => false),
-                ))
-                ->loadFromExtension('twig', array( // to be removed in 5.0 relying on default
-                    'strict_variables' => false,
-                ))
-            ;
+            $container->loadFromExtension('framework', array(
+                'secret' => '$ecret',
+                'form' => array('enabled' => false),
+            ));
         });
 
         if ($this->withTemplating) {

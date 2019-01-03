@@ -17,11 +17,11 @@ use Symfony\Bundle\TwigBundle\Tests\TestCase;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\DependencyInjection\Reference;
 
 class TwigExtensionTest extends TestCase
 {
@@ -29,9 +29,7 @@ class TwigExtensionTest extends TestCase
     {
         $container = $this->createContainer();
         $container->registerExtension(new TwigExtension());
-        $container->loadFromExtension('twig', array(
-            'strict_variables' => false, // to be removed in 5.0 relying on default
-        ));
+        $container->loadFromExtension('twig', array());
         $this->compileContainer($container);
 
         $this->assertEquals('Twig\Environment', $container->getDefinition('twig')->getClass(), '->load() loads the twig.xml file');
@@ -74,7 +72,7 @@ class TwigExtensionTest extends TestCase
         $this->assertEquals(3.14, $calls[4][1][1], '->load() registers variables as Twig globals');
 
         // Yaml and Php specific configs
-        if (\in_array($format, array('yml', 'php'))) {
+        if (in_array($format, array('yml', 'php'))) {
             $this->assertEquals('bad', $calls[5][1][0], '->load() registers variables as Twig globals');
             $this->assertEquals(array('key' => 'foo'), $calls[5][1][1], '->load() registers variables as Twig globals');
         }
@@ -153,14 +151,11 @@ class TwigExtensionTest extends TestCase
 
         $container = $this->createContainer();
         $container->registerExtension(new TwigExtension());
-        $container->loadFromExtension('twig', array(
-            'globals' => $globals,
-            'strict_variables' => false, // // to be removed in 5.0 relying on default
-        ));
+        $container->loadFromExtension('twig', array('globals' => $globals));
         $this->compileContainer($container);
 
         $calls = $container->getDefinition('twig')->getMethodCalls();
-        foreach (\array_slice($calls, 2) as $call) {
+        foreach (array_slice($calls, 2) as $call) {
             $this->assertEquals(key($globals), $call[1][0]);
             $this->assertSame(current($globals), $call[1][1]);
 
@@ -193,46 +188,11 @@ class TwigExtensionTest extends TestCase
             array('namespaced_path1', 'namespace1'),
             array('namespaced_path2', 'namespace2'),
             array('namespaced_path3', 'namespace3'),
+            array(__DIR__.'/Fixtures/Resources/TwigBundle/views', 'Twig'),
             array(__DIR__.'/Fixtures/templates/bundles/TwigBundle', 'Twig'),
             array(realpath(__DIR__.'/../..').'/Resources/views', 'Twig'),
             array(realpath(__DIR__.'/../..').'/Resources/views', '!Twig'),
-            array(__DIR__.'/Fixtures/templates'),
-        ), $paths);
-    }
-
-    /**
-     * @group legacy
-     * @dataProvider getFormats
-     * @expectedDeprecation Templates directory "%s/Resources/TwigBundle/views" is deprecated since Symfony 4.2, use "%s/templates/bundles/TwigBundle" instead.
-     * @expectedDeprecation Templates directory "%s/Resources/views" is deprecated since Symfony 4.2, use "%s/templates" instead.
-     */
-    public function testLegacyTwigLoaderPaths($format)
-    {
-        $container = $this->createContainer(__DIR__.'/../Fixtures/templates');
-        $container->registerExtension(new TwigExtension());
-        $this->loadFromFile($container, 'full', $format);
-        $this->loadFromFile($container, 'extra', $format);
-        $this->compileContainer($container);
-
-        $def = $container->getDefinition('twig.loader.native_filesystem');
-        $paths = array();
-        foreach ($def->getMethodCalls() as $call) {
-            if ('addPath' === $call[0] && false === strpos($call[1][0], 'Form')) {
-                $paths[] = $call[1];
-            }
-        }
-
-        $this->assertEquals(array(
-            array('path1'),
-            array('path2'),
-            array('namespaced_path1', 'namespace1'),
-            array('namespaced_path2', 'namespace2'),
-            array('namespaced_path3', 'namespace3'),
-            array(__DIR__.'/../Fixtures/templates/Resources/TwigBundle/views', 'Twig'),
-            array(__DIR__.'/Fixtures/templates/bundles/TwigBundle', 'Twig'),
-            array(realpath(__DIR__.'/../..').'/Resources/views', 'Twig'),
-            array(realpath(__DIR__.'/../..').'/Resources/views', '!Twig'),
-            array(__DIR__.'/../Fixtures/templates/Resources/views'),
+            array(__DIR__.'/Fixtures/Resources/views'),
             array(__DIR__.'/Fixtures/templates'),
         ), $paths);
     }
@@ -257,13 +217,10 @@ class TwigExtensionTest extends TestCase
             $container->register('debug.stopwatch', 'Symfony\Component\Stopwatch\Stopwatch');
         }
         $container->registerExtension(new TwigExtension());
-        $container->loadFromExtension('twig', array(
-            'strict_variables' => false, // to be removed in 5.0 relying on default
-        ));
-        $container->setAlias('test.twig.extension.debug.stopwatch', 'twig.extension.debug.stopwatch')->setPublic(true);
+        $container->loadFromExtension('twig', array());
         $this->compileContainer($container);
 
-        $tokenParsers = $container->get('test.twig.extension.debug.stopwatch')->getTokenParsers();
+        $tokenParsers = $container->get('twig.extension.debug.stopwatch')->getTokenParsers();
         $stopwatchIsAvailable = new \ReflectionProperty($tokenParsers[0], 'stopwatchIsAvailable');
         $stopwatchIsAvailable->setAccessible(true);
 
@@ -284,9 +241,7 @@ class TwigExtensionTest extends TestCase
     {
         $container = $this->createContainer();
         $container->registerExtension(new TwigExtension());
-        $container->loadFromExtension('twig', array(
-            'strict_variables' => false, // to be removed in 5.0 relying on default
-        ));
+        $container->loadFromExtension('twig', array());
         $container->setParameter('kernel.environment', 'test');
         $container->setParameter('debug.file_link_format', 'test');
         $container->setParameter('foo', 'FooClass');
@@ -306,11 +261,11 @@ class TwigExtensionTest extends TestCase
         $this->assertEquals('foo', $args['FooClass']->getValues()[0]);
     }
 
-    private function createContainer(string $rootDir = __DIR__.'/Fixtures')
+    private function createContainer()
     {
         $container = new ContainerBuilder(new ParameterBag(array(
             'kernel.cache_dir' => __DIR__,
-            'kernel.root_dir' => $rootDir,
+            'kernel.root_dir' => __DIR__.'/Fixtures',
             'kernel.project_dir' => __DIR__,
             'kernel.charset' => 'UTF-8',
             'kernel.debug' => false,

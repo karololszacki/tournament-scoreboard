@@ -41,7 +41,6 @@
             <argument type="service" id="kernel" />
             <argument>%kernel.root_dir%</argument>
             <argument type="collection" /> <!-- Twig paths -->
-            <argument>%twig.default_path%</argument>
         </service>
 
         <service id="twig.template_cache_warmer" class="Symfony\Bundle\TwigBundle\CacheWarmer\TemplateCacheWarmer">
@@ -84,7 +83,7 @@
         <service id="twig.extension.code" class="Symfony\Bridge\Twig\Extension\CodeExtension">
             <tag name="twig.extension" />
             <argument type="service" id="debug.file_link_formatter" on-invalid="ignore" />
-            <argument>%kernel.project_dir%</argument>
+            <argument>%kernel.root_dir%</argument>
             <argument>%kernel.charset%</argument>
         </service>
 
@@ -105,6 +104,7 @@
 
         <service id="twig.runtime.httpkernel" class="Symfony\Bridge\Twig\Extension\HttpKernelRuntime">
             <argument type="service" id="fragment.handler" />
+            <tag name="twig.runtime" />
         </service>
 
         <service id="twig.extension.httpfoundation" class="Symfony\Bridge\Twig\Extension\HttpFoundationExtension">
@@ -113,10 +113,6 @@
         </service>
 
         <service id="twig.extension.debug" class="Twig\Extension\DebugExtension" />
-
-        <service id="twig.extension.weblink" class="Symfony\Bridge\Twig\Extension\WebLinkExtension">
-            <argument type="service" id="request_stack" />
-        </service>
 
         <service id="twig.translation.extractor" class="Symfony\Bridge\Twig\Translation\TwigExtractor">
             <argument type="service" id="twig" />
@@ -132,7 +128,6 @@
             <tag name="monolog.logger" channel="request" />
             <argument>%twig.exception_listener.controller%</argument>
             <argument type="service" id="logger" on-invalid="null" />
-            <argument>%kernel.debug%</argument>
         </service>
 
         <service id="twig.controller.exception" class="Symfony\Bundle\TwigBundle\Controller\ExceptionController" public="true">

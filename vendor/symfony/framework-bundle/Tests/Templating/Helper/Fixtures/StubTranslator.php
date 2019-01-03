@@ -11,12 +11,25 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Templating\Helper\Fixtures;
 
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class StubTranslator implements TranslatorInterface
 {
     public function trans($id, array $parameters = array(), $domain = null, $locale = null)
     {
         return '[trans]'.$id.'[/trans]';
+    }
+
+    public function transChoice($id, $number, array $parameters = array(), $domain = null, $locale = null)
+    {
+        return '[trans]'.$id.'[/trans]';
+    }
+
+    public function setLocale($locale)
+    {
+    }
+
+    public function getLocale()
+    {
     }
 }

@@ -13,9 +13,9 @@ namespace Symfony\Component\Yaml\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\Yaml\Tag\TaggedValue;
-use Symfony\Component\Yaml\Yaml;
 
 class ParserTest extends TestCase
 {
@@ -672,88 +672,6 @@ EOT;
         $this->assertSame($expected, $this->parser->parse($yaml));
     }
 
-    public function testNonStringFollowedByCommentEmbeddedInMapping()
-    {
-        $yaml = <<<'EOT'
-a:
-    b:
-        {}
-# comment
-    d:
-        1.1
-# another comment
-EOT;
-        $expected = array(
-            'a' => array(
-                'b' => array(),
-                'd' => 1.1,
-            ),
-        );
-
-        $this->assertSame($expected, $this->parser->parse($yaml));
-    }
-
-    public function getParseExceptionNotAffectedMultiLineStringLastResortParsing()
-    {
-        $tests = array();
-
-        $yaml = <<<'EOT'
-a
-    b:
-EOT;
-        $tests['parse error on first line'] = array($yaml);
-
-        $yaml = <<<'EOT'
-a
-
-b
-    c:
-EOT;
-        $tests['parse error due to inconsistent indentation'] = array($yaml);
-
-        $yaml = <<<'EOT'
- &  *  !  |  >  '  "  %  @  ` #, { asd a;sdasd }-@^qw3
-EOT;
-        $tests['symfony/symfony/issues/22967#issuecomment-322067742'] = array($yaml);
-
-        return $tests;
-    }
-
-    /**
-     * @dataProvider getParseExceptionNotAffectedMultiLineStringLastResortParsing
-     * @expectedException \Symfony\Component\Yaml\Exception\ParseException
-     */
-    public function testParseExceptionNotAffectedByMultiLineStringLastResortParsing($yaml)
-    {
-        $this->parser->parse($yaml);
-    }
-
-    public function testMultiLineStringLastResortParsing()
-    {
-        $yaml = <<<'EOT'
-test:
-  You can have things that don't look like strings here
-  true
-  yes you can
-EOT;
-        $expected = array(
-            'test' => 'You can have things that don\'t look like strings here true yes you can',
-        );
-
-        $this->assertSame($expected, $this->parser->parse($yaml));
-
-        $yaml = <<<'EOT'
-a:
-    b
-       c
-EOT;
-        $expected = array(
-            'a' => 'b c',
-        );
-
-        $this->assertSame($expected, $this->parser->parse($yaml));
-    }
-
     /**
      * @expectedException \Symfony\Component\Yaml\Exception\ParseException
      */
@@ -788,7 +706,7 @@ EOF
      *
      * > It is an error for two equal keys to appear in the same mapping node.
      * > In such a case the YAML processor may continue, ignoring the second
-     * > "key: value" pair and issuing an appropriate warning. This strategy
+     * > `key: value` pair and issuing an appropriate warning. This strategy
      * > preserves a consistent information model for one-pass and random access
      * > applications.
      *
@@ -1515,38 +1433,6 @@ YAML;
         $this->assertSame(array('foobar' => 'foobar'), $this->parser->parse($yaml));
     }
 
-    public function testCommentCharactersInMultiLineQuotedStrings()
-    {
-        $yaml = <<<YAML
-foo:
-    foobar: 'foo
-      #bar'
-    bar: baz
-YAML;
-        $expected = array(
-            'foo' => array(
-                'foobar' => 'foo #bar',
-                'bar' => 'baz',
-            ),
-        );
-
-        $this->assertSame($expected, $this->parser->parse($yaml));
-    }
-
-    public function testBlankLinesInQuotedMultiLineString()
-    {
-        $yaml = <<<YAML
-foobar: 'foo
-
-    bar'
-YAML;
-        $expected = array(
-            'foobar' => "foo\nbar",
-        );
-
-        $this->assertSame($expected, $this->parser->parse($yaml));
-    }
-
     public function testParseMultiLineUnquotedString()
     {
         $yaml = <<<EOT
@@ -1684,10 +1570,6 @@ YAML
 - !quz {foo: bar, quz: !bar {one: bar}}
 YAML
             ),
-            'spaces-around-tag-value-in-sequence' => array(
-                array(new TaggedValue('foo', 'bar')),
-                '[ !foo bar ]',
-            ),
         );
     }
 
@@ -1698,7 +1580,7 @@ YAML
 
     /**
      * @expectedException \Symfony\Component\Yaml\Exception\ParseException
-     * @expectedExceptionMessage Tags support is not enabled. Enable the "Yaml::PARSE_CUSTOM_TAGS" flag to use "!iterator" at line 1 (near "!iterator [foo]").
+     * @expectedExceptionMessage Tags support is not enabled. Enable the `Yaml::PARSE_CUSTOM_TAGS` flag to use "!iterator" at line 1 (near "!iterator [foo]").
      */
     public function testCustomTagsDisabled()
     {
@@ -1707,7 +1589,7 @@ YAML
 
     /**
      * @expectedException \Symfony\Component\Yaml\Exception\ParseException
-     * @expectedExceptionMessage Tags support is not enabled. Enable the "Yaml::PARSE_CUSTOM_TAGS" flag to use "!iterator" at line 1 (near "!iterator foo").
+     * @expectedExceptionMessage Tags support is not enabled. Enable the `Yaml::PARSE_CUSTOM_TAGS` flag to use "!iterator" at line 1 (near "!iterator foo").
      */
     public function testUnsupportedTagWithScalar()
     {
@@ -1941,12 +1823,8 @@ YAML;
      */
     public function testParsingNotReadableFilesThrowsException()
     {
-        if ('\\' === \DIRECTORY_SEPARATOR) {
+        if ('\\' === DIRECTORY_SEPARATOR) {
             $this->markTestSkipped('chmod is not supported on Windows');
-        }
-
-        if (!getenv('USER') || 'root' === getenv('USER')) {
-            $this->markTestSkipped('This test will fail if run under superuser');
         }
 
         $file = __DIR__.'/Fixtures/not_readable.yml';
@@ -2021,80 +1899,6 @@ YAML;
 foo: { &foo { a: Steve, <<: *foo} }
 EOE;
         $this->parser->parse($yaml);
-    }
-
-    /**
-     * @dataProvider indentedMappingData
-     */
-    public function testParseIndentedMappings($yaml, $expected)
-    {
-        $this->assertSame($expected, $this->parser->parse($yaml));
-    }
-
-    public function indentedMappingData()
-    {
-        $tests = array();
-
-        $yaml = <<<YAML
-foo:
-  - bar: "foobar"
-    # A comment
-    baz: "foobaz"
-YAML;
-        $expected = array(
-            'foo' => array(
-                array(
-                    'bar' => 'foobar',
-                    'baz' => 'foobaz',
-                ),
-            ),
-        );
-        $tests['comment line is first line in indented block'] = array($yaml, $expected);
-
-        $yaml = <<<YAML
-foo:
-    - bar:
-        # comment
-        baz: [1, 2, 3]
-YAML;
-        $expected = array(
-            'foo' => array(
-                array(
-                    'bar' => array(
-                        'baz' => array(1, 2, 3),
-                    ),
-                ),
-            ),
-        );
-        $tests['mapping value on new line starting with a comment line'] = array($yaml, $expected);
-
-        $yaml = <<<YAML
-foo:
-  -
-    bar: foobar
-YAML;
-        $expected = array(
-            'foo' => array(
-                array(
-                    'bar' => 'foobar',
-                ),
-            ),
-        );
-        $tests['mapping in sequence starting on a new line'] = array($yaml, $expected);
-
-        $yaml = <<<YAML
-foo:
-
-    bar: baz
-YAML;
-        $expected = array(
-            'foo' => array(
-                'bar' => 'baz',
-            ),
-        );
-        $tests['blank line at the beginning of an indented mapping value'] = array($yaml, $expected);
-
-        return $tests;
     }
 }
 
