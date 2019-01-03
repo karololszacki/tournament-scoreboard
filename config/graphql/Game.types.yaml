@@ -1,0 +1,13 @@
+Game:
+  type: object
+  config:
+    description: "A game"
+    fields:
+      id:
+        type: "Int!"
+        description: "The unique ID of the game."
+      timestamp:
+        type: "int"
+        description: "Timestamp of the game."
+      teams:
+        type: "[Team]!"
