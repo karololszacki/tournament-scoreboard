@@ -61,14 +61,33 @@ $mutationType = [
     'setGame' => function ($root, $args) {
 
         $game = R::dispense('game');
-        $game['scores'] = implode($args['scores'], ",");
-        $game['teamA'] = getTeamByUserList($args['teamA']);
-        $game['teamB'] = getTeamByUserList($args['teamB']);
+        $game['scores'] = implode(",", $args['scores']); // implode to save in DB
+
+        $teamA = getTeamByUserList($args['teamA']);
+        $teamB = getTeamByUserList($args['teamB']);
+        $game['teamA'] = $teamA;
+        $game['teamB'] = $teamB;
         $game['timestamp'] = time();
 
         R::store($game);
 
-        return $game;
+        $result = [
+            'id' => $game['id'],
+            'scores' => explode(",", $game['scores']), // explode when reading from DB
+            'timestamp' => $game['timestamp'],
+            'teams' => [
+                [
+                    'id' => $teamA['id'],
+                    'user_list' => explode(", ", $teamA['user_list'])
+                ],
+                [
+
+                    'id' => $teamB['id'],
+                    'user_list' => explode(", ", $teamB['user_list'])
+                ]
+            ]
+        ];
+        return $result;
     },
     'deleteGame' => function ($root, $args) {
         $game = R::dispense('game');
