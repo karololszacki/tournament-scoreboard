@@ -20,6 +20,9 @@ class srcApp_KernelDevDebugContainerUrlGenerator extends Symfony\Component\Routi
         $this->defaultLocale = $defaultLocale;
         if (null === self::$declaredRoutes) {
             self::$declaredRoutes = array(
+        'overblog_graphiql_endpoint' => array(array(), array('_controller' => 'Overblog\\GraphiQLBundle\\Controller\\GraphiQLController::indexAction'), array(), array(array('text', '/graphiql')), array(), array()),
+        'overblog_graphiql_endpoint_multiple' => array(array('schemaName'), array('_controller' => 'Overblog\\GraphiQLBundle\\Controller\\GraphiQLController::indexAction'), array(), array(array('variable', '/', '[^/]++', 'schemaName', true), array('text', '/graphiql')), array(), array()),
+        '_twig_error_test' => array(array('code', '_format'), array('_controller' => 'twig.controller.preview_error::previewErrorPageAction', '_format' => 'html'), array('code' => '\\d+'), array(array('variable', '.', '[^/]++', '_format', true), array('variable', '/', '\\d+', 'code', true), array('text', '/_error')), array(), array()),
     );
         }
     }
