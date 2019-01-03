@@ -1,0 +1,44 @@
+
+.GameList {
+  padding: 20px;
+}
+
+.GameList__item {
+  display: flex;
+  align-items: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-top: 1px solid lightgrey;
+}
+
+.GameList__item:first-child {
+  border-top: none;
+}
+
+.GameList__item__team {
+  display: flex;
+  flex: 1;
+  padding-left: 10px;
+  padding-right: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.GameList__item__team__user {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.GameList__item__scores {
+  display: flex;
+}
+
+.GameList__item__scores__value {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.GameList__item__scores__separator {
+  padding-left: 10px;
+  padding-right: 10px;
+}
