@@ -1,21 +1,21 @@
 type Game {
   id: Int
   timestamp: String
-  teams: [Team]!
-  scores: [Int]!
+  teams: [Team]
+  scores: [Int]
 }
 
 type Team {
   id: Int
-  userList: [string]!
+  user_list: [String]!
 }
 
 type Query {
-  messages(roomName: String): [Message]
-  rooms: [Room]
+  games: [Game]
+  teams: [Team]
+  teamByUserList: Team
 }
 
 type Mutation {
-  start(roomName: String): Room
-  chat(roomName: String, body: String): Message
+  setGame(scores: [Int], teamA: [String], teamB: [String]): Game
 }
