@@ -45,8 +45,6 @@ function GameList(props) {
   function renderItem(game) {
     const { id, timestamp, teams, scores } = game
 
-    console.log(game)
-
     return (
       <div key={`GameListItem_${id}`} className="GameList__item">
         <div className="GameList__item__date">
