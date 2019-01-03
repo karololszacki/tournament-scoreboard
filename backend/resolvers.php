@@ -69,6 +69,13 @@ $mutationType = [
         R::store($game);
 
         return $game;
+    },
+    'deleteGame' => function ($root, $args) {
+        $game = R::dispense('game');
+
+        R::trash('game', $args['gameId']);
+
+        return $args['gameId'];
     }
 ];
 

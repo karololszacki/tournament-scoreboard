@@ -14,7 +14,7 @@ function DeleteGameButton(props) {
 
 
     function onDeleteGame(gameId) {
-        console.log(gameId)
+        props.onDeleteGame({ variables: { gameId: gameId }})
     }
 
     function renderDeleteScoreButton() {

@@ -18,4 +18,5 @@ type Query {
 
 type Mutation {
   setGame(scores: [Int], teamA: [String], teamB: [String]): Game
+  deleteGame(gameId: Int): Game
 }

@@ -14,7 +14,7 @@ const game = `
 `
 
 const deleteGameMutation = gql`
-  mutation deleteGameMutation($gameId: [Int]) {
+  mutation deleteGameMutation($gameId: Int) {
     deleteGame(gameId: $gameId) {
       ${game}
     }
@@ -34,20 +34,21 @@ function EnhanceDeleteGameButton(Component) {
             return (
                 <Mutation
                     mutation={deleteGameMutation}
-                    update={(cache, { data: { deleteGame } }) => {
-                        const { games } = cache.readQuery({ query });
-
+                    update={(cache, { data: { deletedGameId } }) => {
+                        const { games } = cache.readQuery({ query })
                         cache.writeQuery({
                             query,
-                            data: { games: games.concat([deleteGame]) },
-                        });
+                            data: { games: games.filter(function (game) {
+                                return game.id !== deletedGameId
+                                }) },
+                        })
                     }}
                 >
                     {(deleteGameMutation, { loading, error }) => (
                         <Component
                             isLoading={loading}
                             hasError={error}
-
+                            gameId={this.props.gameId}
                             onDeleteGame={deleteGameMutation}
                         />
                     )}
