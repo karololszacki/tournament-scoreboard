@@ -70,10 +70,12 @@ const gameList = [
 ]
 
 const query = gql`{
-  game {
+  games {
+    id
     timestamp
     teams {
-      userList
+      id
+      user_list
     }
     scores
   }
@@ -89,7 +91,9 @@ function EnhanceGameList(Component) {
           <Component
             isLoading={loading}
             hasError={error}
-            gameList={data}
+            gameList={data.games}
+            // test={data}
+            // gameList={gameList}
           />
         )}
         </Query>

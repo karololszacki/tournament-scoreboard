@@ -43,32 +43,38 @@ function GameList(props) {
   }
 
   function renderItem(game) {
-    const { timestamp, teams, scores } = game
+    const { id, timestamp, teams, scores } = game
+
+    console.log(game)
+
     return (
-      <div className="GameList__item">
+      <div key={`GameListItem_${id}`} className="GameList__item">
         <div className="GameList__item__date">
-          {moment(timestamp).format('DD MMM YYYY')}
+          {moment(parseInt(timestamp) * 1000).format('DD MMM YYYY HH:mm')}
         </div>
         <div className="GameList__item__team">
-          {renderTeam(teams[0])}
+          {renderTeam(teams[0], id)}
         </div>
         <div className="GameList__item__scores">
           {renderScores(scores)}
         </div>
         <div className="GameList__item__team">
-          {renderTeam(teams[1])}
+          {renderTeam(teams[1], id)}
         </div>
       </div>
     )
   }
 
-  function renderTeam(team) {
-    const { userList } = team
+  function renderTeam(team, gameId) {
+    const { id, user_list } = team
     return (
       <Fragment>
         {
-          userList.map(userName => (
-            <div className="GameList__item__team__user">
+          user_list.map(userName => (
+            <div
+              key={`Game_${gameId}_Team_${id}`}
+              className="GameList__item__team__user"
+            >
               {userName}
             </div>
           ))
