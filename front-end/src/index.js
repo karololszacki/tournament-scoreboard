@@ -8,7 +8,7 @@ import { ApolloProvider } from "react-apollo";
 import ApolloClient from "apollo-boost";
 
 const client = new ApolloClient({
-  uri: "http://1ad9d2ae.eu.ngrok.io"
+  uri: "http://localhost:8000"
 });
 
 const rootEl = document.getElementById('root');
