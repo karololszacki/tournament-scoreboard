@@ -1,14 +1,13 @@
-type Message {
+type Game {
   id: Int
-  roomId: Int
-  body: String
   timestamp: String
+  teams: [Team]!
+  scores: [Int]!
 }
 
-type Room {
+type Team {
   id: Int
-  name: String
-  messages: [Message]
+  userList: [string]!
 }
 
 type Query {
