@@ -11,7 +11,7 @@ namespace App\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class LuckyController
+class TestController
 {
     /**
      * @Route("/lucky/number/{max}", name="app_lucky_number")
