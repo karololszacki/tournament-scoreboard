@@ -5,6 +5,7 @@ import moment from 'moment'
 import Card from '@material-ui/core/Card';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ErrorOutline from '@material-ui/icons/ErrorOutline';
+import DeleteGameButton from './../DeleteGameButton';
 
 import './styles.css';
 
@@ -59,6 +60,7 @@ function GameList(props) {
         <div className="GameList__item__team">
           {renderTeam(teams[1], id)}
         </div>
+          <DeleteGameButton gameId={id}/>
       </div>
     )
   }
