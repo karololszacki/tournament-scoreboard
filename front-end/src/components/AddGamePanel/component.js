@@ -9,6 +9,7 @@ import Card from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
 
 const users = [
+  `None`,
   `Fabio Costantino`,
   `Karol Olszacki`,
   `Rafał Uranek`,
@@ -22,7 +23,7 @@ const users = [
 
 const teamNames = ['firstTeam', 'secondTeam'];
 
-function AddGamePanel() {
+function AddGamePanel(props) {
 
   const [state, setState] = React.useState({
     firstTeam: [0, 0],
@@ -51,10 +52,25 @@ function AddGamePanel() {
         variant="contained"
         color="primary"
         className="AddGamePanel__button"
+        onClick={onCreateGame}
       >
         {`Add`}
       </Button>
     )
+  }
+
+  function onCreateGame() {
+    const { firstTeam, secondTeam, score } = state
+    const firstTeamUserList = [
+      users[firstTeam[0]],
+      users[firstTeam[1]]
+    ]
+    const secondTeamUserList = [
+      users[secondTeam[0]],
+      users[secondTeam[1]]
+    ]
+
+    props.onCreateGame({ variables: { scores: score, teamA: firstTeamUserList, teamB: secondTeamUserList }})
   }
 
   function renderScore() {
@@ -63,7 +79,7 @@ function AddGamePanel() {
         <TextField
           id="standard-number"
           value={state.score[0]}
-          onChange={(event) => handleScoreChange(0, event.target.value)}
+          onChange={(event) => handleScoreChange(0, parseInt(event.target.value))}
           type="number"
           className="AppGamePanel__score__text-field"
           InputLabelProps={{
@@ -77,7 +93,7 @@ function AddGamePanel() {
         <TextField
           id="standard-number"
           value={state.score[1]}
-          onChange={(event) => handleScoreChange(1, event.target.value)}
+          onChange={(event) => handleScoreChange(1, parseInt(event.target.value))}
           type="number"
           className="AppGamePanel__score__text-field"
           InputLabelProps={{
@@ -96,18 +112,12 @@ function AddGamePanel() {
           value={state[teamName][0]}
           onChange={(event) => handleChange(teamName, 0, event.target.value)}
         >
-          <MenuItem value={0}>
-            <em>{`None`}</em>
-          </MenuItem>
           {renderUserList(teamName)}
         </Select>
         <Select
           value={state[teamName][1]}
           onChange={(event) => handleChange(teamName, 1, event.target.value)}
         >
-          <MenuItem value={0}>
-            <em>{`None`}</em>
-          </MenuItem>
           {renderUserList(teamName)}
         </Select>
       </Fragment>
@@ -116,7 +126,7 @@ function AddGamePanel() {
 
   function renderUserList(teamName) {
     return users.map((userName, index) => (
-      <MenuItem value={index + 1}>{userName}</MenuItem>
+      <MenuItem key={`${teamName}_${index}`} value={index}>{userName}</MenuItem>
     ))
   }
 

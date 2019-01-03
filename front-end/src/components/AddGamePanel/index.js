@@ -1,3 +1,5 @@
 import Component from './component'
 
-export default Component
+import Enhancer from './enhancer'
+
+export default Enhancer(Component)

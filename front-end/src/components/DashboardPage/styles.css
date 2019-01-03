@@ -1,4 +1,12 @@
 
 .DashboardPage {
-  padding: 50px;
+  padding: 30px;
+}
+
+.DashboardPage__add-game-panel {
+  padding: 20px;
+}
+
+.DashboardPage__game-list {
+  padding: 20px;
 }
