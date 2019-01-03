@@ -3,6 +3,10 @@
   padding: 20px;
 }
 
+.GameList__error-icon {
+  font-size: 50px;
+}
+
 .GameList__item {
   display: flex;
   align-items: center;

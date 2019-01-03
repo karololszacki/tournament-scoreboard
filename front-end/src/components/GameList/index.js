@@ -1,3 +1,5 @@
 import Component from './component'
 
-export default Component
+import EnhanceGameList from './enhancer'
+
+export default EnhanceGameList(Component)

@@ -3,86 +3,44 @@ import React, { Fragment } from 'react';
 import moment from 'moment'
 
 import Card from '@material-ui/core/Card';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import ErrorOutline from '@material-ui/icons/ErrorOutline';
 
 import './styles.css';
 
-const gameList = [
-  {
-    timestamp: 1546512730199,
-    teams: [
-      {
-        userList: [
-          'Rafał Uranek',
-          'Karol Olszacki'
-        ]
-      },
-      {
-        userList: [
-          'Fabio Costantino',
-          'Grzegorz Pasieka'
-        ]
-      }
-    ],
-    scores: [
-      10,
-      5
-    ]
-  },
-  {
-    timestamp: 1546512730199,
-    teams: [
-      {
-        userList: [
-          'Rafał Uranek',
-          'Karol Olszacki'
-        ]
-      },
-      {
-        userList: [
-          'Fabio Costantino',
-          'Grzegorz Pasieka'
-        ]
-      }
-    ],
-    scores: [
-      10,
-      5
-    ]
-  },
-  {
-    timestamp: 1546512730199,
-    teams: [
-      {
-        userList: [
-          'Rafał Uranek',
-          'Karol Olszacki'
-        ]
-      },
-      {
-        userList: [
-          'Fabio Costantino',
-          'Grzegorz Pasieka'
-        ]
-      }
-    ],
-    scores: [
-      10,
-      5
-    ]
-  }
-]
-
 function GameList(props) {
+
   return (
     <Card className="GameList">
-      {/* {
-        props.gameList.map(renderItem)
-      } */}
       {
-        gameList.map(renderItem)
+        props.isLoading
+          ? renderLoading()
+          : null
+      }
+      {
+        props.hasError && !props.isLoading
+          ? renderError()
+          : null
+      }
+      {
+        !props.hasError && !props.isLoading
+          ? props.gameList.map(renderItem)
+          : null
       }
     </Card>
   );
+
+  function renderLoading() {
+    return (
+      <CircularProgress />
+    )
+  }
+
+  function renderError() {
+    return (
+      <ErrorOutline fontSize="large" />
+    )
+  }
 
   function renderItem(game) {
     const { timestamp, teams, scores } = game
