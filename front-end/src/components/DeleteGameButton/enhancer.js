@@ -34,12 +34,12 @@ function EnhanceDeleteGameButton(Component) {
             return (
                 <Mutation
                     mutation={deleteGameMutation}
-                    update={(cache, { data: { deletedGameId } }) => {
+                    update={(cache, { data: { deleteGame } }) => {
                         const { games } = cache.readQuery({ query })
                         cache.writeQuery({
                             query,
                             data: { games: games.filter(function (game) {
-                                return game.id !== deletedGameId
+                                return game.id !== deleteGame.id
                                 }) },
                         })
                     }}
